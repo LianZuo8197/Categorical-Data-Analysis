@@ -1,0 +1,118 @@
+---
+title: "569-HW5"
+author: "Lian Zuo"
+date: "2023-03-04"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,comment = "")
+```
+
+# Q1
+## a) the MLE of $\hat\theta$ is 8.1.
+## b) the MLE of $\theta^2+2\theta-1$ is 80.81.
+## c) the MLE of mean and variance of the random variable Y is 8.1 and 8.1.
+## d) the MLE estimate of variance and standard error of $\theta$ is 0.405 and 0.6363961
+## e) the  90% Wald’s confidence interval for $\theta$ is [7.053222 , 9.146778].
+
+```{r}
+# a
+Y <- c(5, 7, 8, 13, 11, 11, 6, 8, 10, 15, 4, 6, 5, 5, 8, 11, 7, 3, 6, 13) 
+theta.hat <- sum(Y)/length(Y)
+theta.hat
+# b
+f.theta.hat <- theta.hat^2+2*theta.hat-1
+f.theta.hat
+# c
+mean.y=theta.hat
+var.y=theta.hat
+list(mean.y,var.y)
+# d
+var.theta.hat <- theta.hat/length(Y)
+se.theta.hat <- sqrt(var.theta.hat)
+list(var.theta.hat,se.theta.hat)
+#e
+CI <- c(theta.hat-qnorm(0.95,0,1)*se.theta.hat,theta.hat+qnorm(0.95,0,1)*se.theta.hat)
+CI
+```
+
+# Q2
+## a)Find an MLE of success probability p is 0.805.
+## b) Find the estimated variance of MLE of p is 0.003924375.
+## c) Find the estimated standard error of the MLE of p is 0.06264483
+## d) Find a 95% Wald confidence interval for the success probability p is (0.6822184 ,0.9277816).
+## e) Find an MLE of odds of success p is 4.128205. This odds means that there are about 4 successes for every failure.
+```{r}
+# a
+set.seed(2023)
+dat=rbinom(15,40,0.8)
+p.hat <- sum(dat)/(15*40)
+p.hat
+# b
+v.p.hat <- p.hat*(1-p.hat)/40
+v.p.hat
+# c
+se.p.hat <- sqrt(v.p.hat)
+se.p.hat
+# d
+CI <- c(p.hat-qnorm(0.975,0,1)*se.p.hat,p.hat+qnorm(0.975,0,1)*se.p.hat)
+CI
+# e
+odds <- p.hat/(1-p.hat)
+odds
+```
+
+# Q3
+## a) The probability that there will be 10 accidents over a 2-year period is 0.1048373
+## b) The probability that there will be 3 accidents over an 8-month period is 0.1953668
+## c) The probability that there will be at most 4 accidents over a 7-month period is 0.725445
+## d) The probability that there will be at least 5 accidents over a 2.5-year period is 0.9991434
+## e) The probability that there will be at most 3 accidents over a 1-year period is 0.1512039
+```{r}
+# a
+dpois(10,6*2)
+# b
+dpois(3,6*(8/12))
+# c
+ppois(4,6*(7/12))
+# d
+1-ppois(4,6*2.5)
+# e
+ppois(3,6)
+```
+
+# Q4
+## a) Find an MLE $\hat\lambda$ of $\lambda$ is 0.4652241
+	
+## b) Find the estimated variance of MLE of $\lambda$ is 0.0007190481
+
+## c) Find the estimated standard error of the MLE of $\lambda$ is 0.02681507
+
+## d) Find a 99% Wald confidence interval for the parameter $\lambda$ is (0.3961531 ,0.5342952)
+	
+## e) Find an MLE of $(\lambda ^2-1)/(2\lambda +1)$ is -0.4058988.
+
+```{r}
+#a
+x <- c(0,1,2,3,4,5)
+y <- c(447,132,42,21,3,2)
+mean=sum(x*y)/sum(y)
+lamda.hat <- mean
+lamda.hat
+#b
+var.lamda <- lamda.hat/sum(y)
+var.lamda
+#c
+se.lamda <-sqrt(var.lamda)
+se.lamda
+#d
+CI <- c(lamda.hat-qnorm(0.99+0.01/2)*se.lamda,lamda.hat+qnorm(0.99+0.01/2)*se.lamda)
+CI
+#e
+(lamda.hat^2-1)/(2*lamda.hat+1)
+```
+
+

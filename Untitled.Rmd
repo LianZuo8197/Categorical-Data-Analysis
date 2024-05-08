@@ -1,0 +1,67 @@
+---
+title: "SubmitHW7-LianZuo"
+author: "Lian Zuo"
+date: "2023-04-01"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,comment = "")
+```
+
+```{r}
+#(1) the poit estimate of odds ratio for each table are as follows:
+library(epitools)
+result<- list()
+for (i in 1:6){
+    result[[i]]=oddsratio.wald(UCBAdmissions[,,i])$measure
+}
+result
+
+#(2)
+# The point estimate of the unadjusted or crude odds ratio between Admit and Gender variable is 1.84.
+# it indicate dependence(meaning the odds of being admitted for male is 1.84 times the odds of being admitted for female ignoring the effect of the confounder variable.) 
+# there is  Simpson"s paradox, the marginal odds ratio may exhibit an association completely different than the conditional odds ratio in the partial tables.
+
+#(3)
+# The 95% confidence interval of the unadjusted or crude odds ratio between Admit and Gender variable is (1.62, 2.09).
+# Interpret the CI in the context. conclusion on this CI. the 95% CI estimates of odds of being admitted for Male compared to Female is (1.62, 2.09).
+# conclusion: the 95% CI is include the odds ratio 1,which means there is no sex bias in admission.
+
+
+# R code 
+library(epiR)
+result1 <- epi.2by2(UCBAdmissions,method = "cross.sectional",conf.level = 0.95,outcome = "as.columns")
+result1
+
+#(4)
+# The point estimate of mantel-Haenszel adjusted odds ratio between Admit and Gender variable after controlling for Department variable is 0.9046968 .
+# interpret this value in the context: the odds of being admitted for Male is (100-90.47) % = 9.53 % less than the odds of being admitted for Female.
+
+#(5)
+# The 95% confidence interval of mantel-Haenszel adjusted odds ration between Admit and Gender variable after controlling for Department variable is (0.7719074,1.0603298).
+# Interpret the CI in the context:  the 95% CI of mantel-Haenszel adjusted odds ration between Admit and Gender variable after controlling for Department variable estimates of odds of being admitted for Male compared to Female is (0.7719074,1.0603298).
+# conclusion:the 95% CI is include 1,which means there is no sex bias in admission.
+
+#(6)
+# The null hypothesis:
+# The alternative hypothesis:
+# Mantel-Haenszel X-squared = 1.4269
+# Degrees of freedom: df = 1
+# p-value = 0.2323
+# Conclusion: p-value > 0.05, so we accept the null hypothesis and conclude that the odds ratios for each strata of Department variable are not significantly different.
+
+# R code:
+mantelhaen.test(UCBAdmissions,alt="t")
+
+
+
+
+
+
+
+
+
+
+```
+

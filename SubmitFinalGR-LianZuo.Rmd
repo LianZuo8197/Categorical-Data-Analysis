@@ -1,0 +1,258 @@
+---
+title: "SubmitFinalGR-LianZuo"
+author: "Lian Zuo"
+date: "2023-04-23"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,comment = "")
+```
+
+# Problem set 1-6
+```{r}
+library(carData)
+head(Wells)
+#categorizing "edu.level" variable
+Wells$edu.level[Wells$education < 5] = "Low"
+Wells$edu.level[Wells$education >= 5 & Wells$education <= 10] = "Medium"
+Wells$edu.level[Wells$education > 10] = "Fair"
+head(Wells)
+Wells$switch= as.factor(Wells$switch)
+Wells$association= as.factor(Wells$association)
+Wells$edu.level= as.factor(Wells$edu.level)
+Wells$association=relevel(Wells$association,ref = "no")
+Wells$edu.level=relevel(Wells$edu.level,ref = "Fair")
+attach(Wells)
+# 1) A Binary logistic regression model would be appropriate.
+fit <- glm(switch~arsenic+distance+edu.level+association,family = binomial(link = "logit"),data=Wells)
+fit
+
+# 2) the estimated equation is : 
+coef(fit)
+#logit(switch)=0.592802+0.463631*arsenic-0.008849*distance-0.626858*edu.levelLow  -0.566228*edu.levelMedium -0.121281* associationyes  
+
+# 3) Which of the parameters appear to be significant at 5% level provided by the regression output?
+#the parameters of arsenic,distance edu.level.
+summary(fit)
+
+# 4) Test for overall significance of the model by answering following questions:
+# a) the null hypothesis:H0,null model(model with intercept term only) is a satisfactory fit
+
+# b) the alternative hypothesis:Ha, null model is not a satisfactory fit
+
+# c) the test statistic value = 207.752 and associated degrees of freedom=5
+ chisq=with(fit,null.deviance-deviance) # test statistic value
+ chisq
+ df=with(fit,df.null-df.residual) # degrees of freedom
+ df
+ 
+# d) the p-value of the test is 6.231863e-43
+ pval=pchisq(chisq,df,lower.tail = F) # p-value of the test
+ pval
+ 
+# e) conclusion of your hypothesis test at 5% level of significance.
+# Based on the p-value, we reject the null hypothesis and conclude that the proposed model with predictors is a good fit.
+ 
+# 5) Interpret the odds ratio associated with variables arsenic, association level ‘yes’, education level ‘Fair’, and education level ‘Medium’ in the context.
+ # The odds ratio related to arsenic variable is 1.5898359, it means that every one unit increase of the variable arsenic, the odds of variable switch increase by 1.5898359 times keeping the value of other variables the same in the model.
+ 
+ # The odds ratio related to association level 'yes' is 0.8857849 ,it means the odds of variable switch is (1- 0.8857849)=11.42% less for association level 'yes' compared to the association level 'no'.
+ 
+ # The odds ratio related to variable education level ‘fair’ is 1, which is the baseline(reference category)
+ 
+ # The odds ratio related to variable education level ‘Medium’ is 0.5676627,it means the odds of variable switch is (1- 0.5676627)=43.23% less for education level 'Medium' compared to the education level 'Fair' keeping the value of other variables the same in the model.
+ ORs=exp(coef(fit))
+ ORs
+ 
+# 6.)  Find the estimated probability of switching to another well from an unsafe well for a household with household’s original well arsenic level = mean of arsenic, distance to the closest known safe well = mean of distance, no association with community organization, and education of 9 years. Show your calculation (R or manual calculation). Only writing down answer will earn a score of zero.
+new.data=data.frame(arsenic=mean(arsenic),distance=mean(distance),association="no",edu.level="Medium")
+pred1=predict(fit,new.data,type = "response")
+pred1
+#the estimated probability is 0.5907598
+detach(Wells)
+```
+# Problem set 7-10
+```{r}
+
+# 7) Find an estimate of the cumulative odds ratio for being severe or moderately depressed for single or married people, relative to those who are widowed or divorced. Interpret this number in the context.
+OR_hat={(16+29+22+33)/(9+14)}/{(19+14)/3}
+OR_hat
+# the estimate of the cumulative odds ratio is 0.6993007 This means that the odds of being severe or moderately depressed for single or married people are(1-0.3952569)= 60.47% less than the odds for widowed/divorced people.
+
+# 8 a) The variance and standard error of the natural logarithm of the estimate of cumulative odds ratio obtained in question is 0.4171146 and 0.6458441
+var=1/(16+29+22+33)+1/(9+14)+1/(19+14)+1/3
+var
+se=sqrt(var)
+se
+
+# 8 b) Find a 95% confidence interval for the cumulative odds ratio for being severe or moderately depressed for single or married people, relative to those who are widowed or divorced. Interpret this confidence interval in the context.
+log_CI= c(log(OR_hat)-1.96*se,log(OR_hat)+1.96*se)
+log_CI
+CI=exp(log_CI)
+CI
+# The 95% confidence interval for the cumulative odds ratio is [0.1114618 1.4016291]
+
+# 9 ) Find the followings based on the table above:
+# 9 a) the number of concordant pairs is 1990
+# 9 b) the number of discordant pairs is 3070
+tab=as.table(rbind(c(16,29,9), c(22,33,14), 
+                   c(19,14,3)))
+colnames(tab)=c("Severe","Moderate", "Mild")
+rownames(tab)=c("Single","Married", 
+                "Wid/Div")
+tab
+#install.packages("DescTools") #Tools for Descriptive statistics
+library(DescTools)
+result=ConDisPairs(tab)
+result
+
+# 9 c) Goodman-Kruskal γ estimate = -0.2134387
+Gamma.corr=(result$C-result$D)/(result$C+result$D)
+Gamma.corr
+
+# 9 d) Kendall’s τ_b estimate= -0.1355094782
+#GoodmanKruskalGamma() function
+GoodmanKruskalGamma(tab, conf.level=.95)
+KendallTauB(tab, conf.level=.95)
+
+# 9 e) Comment on the relationship between the Depression and Marital status variables based on the measures in parts c and d. 
+# In conclusion, based on the measures in parts c and d, there is a weak negative association between depression and marital status. 
+
+# 10) The cumulative probability of being moderate or severely depressed is 0.836478
+p=(16+29+22+33+19+14)/(16+29+9+22+33+14+19+14+3)
+p
+```
+
+# Problem set 11-13
+```{r}
+setwd("/Users/lianzuo/zuolian/569/Final")
+crab=read.table("crab.txt")
+colnames(crab)=c("cases","color","spine","width","satellites","weight")
+attach(crab)
+spine=as.factor(spine)
+color= as.factor(color)
+# 11)  Fit a Poisson regression to model the number of satellites on width and weight variables.
+# The estimated equation:ln(satellites_hat)= -1.29521 +0.04608*width+0.44697*weight
+pois.crab=glm(satellites~width+weight,family = poisson(link = log),data=crab)
+summary(pois.crab)
+
+# 12) Perform a test to check if overdispersion is presented in the response variable. To do this, write down the following:
+library(AER)
+dispersiontest(pois.crab,alternative = "greater")
+# a) the null hypothesis: overdispersion is not presented in the response variable.
+# b) the alternative hypothesis: overdispersion is  presented in the response variable.
+# c) the test statistic value and the p-value:z = 5.3899,p-value = 3.524e-08
+# d) conclusion at 5% level of significance: Based on the p-value, we reject the null hypothesis and conclude that overdispersion is presented in the response variable.
+
+# 13)
+# a)  Based on the findings in problem 12, fit a quasi Poisson model to address the overdispersion issue. Report the new model equation.
+quasi.crab=glm(satellites~width+weight,family = quasipoisson(link = log),data=crab)
+summary(quasi.crab)
+# The estimated quasi-likelihood model is:ln(satellites_hat)= -1.29521+0.04608*width+0.44697*weight, we get satellites_hat=e^(-1.29521+0.04608*width+0.44697*weight)
+
+# b) Report the overdispersion parameter estimate
+# Dispersion parameter for quasipoisson family taken to be 3.156658)
+
+# c)  Based on the quasi Poisson model, find the odds ratio associated with weight variable, and interpret it.
+# the odds ratio=1.563567,this means for every unit increase in the weigth variable, the estimated number of satellites will increase by multiple of 1.563567
+or=exp(0.44697)
+or
+```
+
+# Problem set 14[A-K]
+```{r}
+# a)	Read the school.csv data from Canvas. To read the dataset use read.csv(“school.csv”).
+setwd("/Users/lianzuo/zuolian/569/Final")
+school=read.csv("school.csv")
+head(school)
+names(school)
+
+# b) Fit a Poisson regression for predicting mean days absent with the predictors male (factor), math score and language score. Make sure to check that the male variable is a factor one. If not, write necessary commands to make it a factor.
+# the estimated equation: ln(dayabs_hat)= 2.687666-0.400921*male-0.003523*math-0.012152*language
+attach(school)
+male=as.factor(male)
+pois.fit=glm(daysabs~male+math+language,family = poisson(link = log),data = school)
+summary(pois.fit)
+
+# c) Report AIC from the Poisson model.
+# AIC: 3103.9
+new.data=data.frame(male=c(1,0),math=c(56.99,37.09),language=c(42.46,46.82))
+pred=predict(pois.fit,new.data,type = "response")
+pred
+
+# d) Find the predicted (i.e., mean) number of days absent when male=1,math=56.99 and language=42.46 is 4.80654
+pred[1]
+
+# e) Find the predicted (i.e., mean) number of days absent when male=0,math=37.09 and language=46.82 is 7.301116
+pred[2]
+
+# f) How would you interpret e^β using the math score?
+exp(-0.003523)
+# Interpretation of e^β =e^(-0.003523)=0.9964832,This means for every unit increase in the math score,the estimated expected number of days absent will increase by a multiple of 0.9964832.
+
+# g) Is there any evidence of overdispersion in the model? Use a formal test to check this.
+library(AER)
+dispersiontest(pois.fit,alternative = "greater")
+# This overdispersion test reports the significance of the over dispersion issue within the model.
+
+# h) Estimate the dispersion parameter. Do you see presence of overdispersion or underdispersion?
+dp=sum(residuals(pois.fit,type = "pearson")^2)/pois.fit$df.residual
+dp
+#The estimated dispersion parameter value of 8.892352 indicates presence of overdispersion in the data.
+
+# i) Fit a Quasi Poisson model, and comment on the significance of predictors.
+quasi.school=glm(daysabs~male+math+language,family = quasipoisson(link = log),data = school)
+summary(quasi.school)
+# the parameters of male and language variables appear to be significant and one predictor of Math become insignificant(p-value>0.05) at 5% level provided by the Quasi Poission regression output.
+
+# j) Fit a negative binomial regression model, and comment on the significance of predictors. Report AIC from the model.
+# the estimated equation:
+#ln(dayabs_hat)=2.716069-0.431185*male-0.001601*math-0.014348*language
+# Note that through a negative binomial regression model,two of the predictors' coefficients (male and language) are significant and one predictor of Math become insignificant(p-value>0.05).
+# the AIC= 1771.7
+library(MASS)
+nb.school=glm.nb(daysabs~male+math+language,data = school)
+summary(nb.school)
+
+# k) Which model fits better using AIC and Residual Deviance Criteria?
+# The negative binomial regression model is a better fit to the data using AIC and Residual Deviance Criteria.
+```
+
+# Problem set 15[a-f]
+```{r}
+library(MASS)
+head(housing)
+housing$Type= relevel(housing$Type,ref = "Apartment")
+attach(housing)
+olr.housing=polr(Sat~Infl+Type+Cont+Freq,data = housing)
+summary(olr.housing)
+# a) Report the estimated model intercept value(s).
+#intercept(Low|Medium )=  0.3845 
+# intercept(Medium|High)=  1.8004
+
+# b) Report the estimated model slope values.
+slope <- -coef(olr.housing)
+slope
+
+# c) Does the model fit well? Write down the test statistic value, degrees of freedom, p-value and conclusion about overall fit.
+g2=deviance(olr.housing)# the test statistic value
+g2
+df=df.residual(olr.housing) # the degree of freedom value
+df
+1-pchisq(g2,df) #p-value
+#conclusion: the test is significant and the full model is a good fit.
+
+# d) Interpret β ̂_InflHigh in the context
+exp(-0.26097224)
+# For people with high perceived degree of influence, the odds of low satisfaction is e^(-0.26097224)= 0.7703023 times the odds for people with low perceived degree of influence while keeping other predictors constant.Moreover,by the proportional odds assumption, this is also the estimated odds ratio for low or medium satisfaction (versus hig),when comparing those two residence type groups.
+
+# e) Interpret β ̂_TypeTower in the context
+exp(-0.53299845)
+#For people living in Tower, the odds of low satisfaction  is e^(-0.53299845)= 0.5868427 times the odds for people living in Apartment while keeping other predictors constant.Moreover,by the proportional odds assumption, this is also the estimated odds ratio for low or medium satisfaction (versus hig),when comparing those two residence type groups.
+
+# f) Interpret β ̂_ContHigh in the context
+exp(--0.19318386)
+# For high contact resident, the odds of low satisfaction is e^(--0.19318386)=1.213106 times the odds for people with low contact resident while keeping other predictors constant.Moreover,by the proportional odds assumption, this is also the estimated odds ratio for low or medium satisfaction (versus hig),when comparing those two residence type groups.
+```
+

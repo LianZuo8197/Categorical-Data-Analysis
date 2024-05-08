@@ -1,0 +1,142 @@
+---
+title: 'Binary Logistic Regression: Admission Example'
+author: "Tanweer Shapla"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r setup, include=FALSE, comment="", warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Read and print first 10 observations of the data. Also attach the data.
+```{r}
+setwd("C:/Users/tshapla/Desktop/COURSES/Stat 469 569/R Programs")
+#C:\Users\tshapla\Desktop\COURSES\Stat 469 569\R Programs
+Admission=read.table("admission.txt", header=T)
+head(Admission, 10)
+```
+Find summary statistics for each variable.
+
+```{r comment=""}
+summary(Admission)
+```
+
+Note that admit and rank variables are beting treated as the continuous variable. In order to consider them as the qualitative variables, we use factor() function. Next we find summary statistics and note the change in the output. The admit and rank variables now have frequency distribution instead of summary statistics. 
+
+
+```{r comment=""}
+Admission$admit=factor(Admission$admit)
+Admission$rank=factor(Admission$rank)
+summary(Admission)
+```
+
+Next, we fit the logistic regression model using glm() function which has the form glm(y~x) with all the predictors included in the model. We save the results in the object named 'fit'.
+
+Note that by default, R assigns reference level of a qualitative predictor using alphanumeric order. Thus, in this example, admit=0 and rank=1 will be treated as reference groups.
+
+```{r comment=""}
+Admission$admit=relevel(Admission$admit, ref="0")
+fit=glm(admit~gre+gpa+rank,family=binomial(link="logit"), data=Admission)
+fit
+#y~. automatically includes all predictors in the model
+#this model also includes the intercept term
+```
+
+Let us see what each function produces:
+
+```{r comment=""}
+attributes(fit)
+summary(fit)
+#fit$fitted #estimated probability of being admitted
+min(fit$fitted)
+max(fit$fitted)
+fit$deviance# gives full model deviance(SSE), also called residual deviance
+fit$df.residual #df for SSE with all predictors in the model
+fit$null.deviance# gives SSE with intercept in the model
+fit$df.null # df for SSE with intercept term only
+```
+## Test of significance of the overall model
+
+We wish to test if the model with predictors fits significantly better than a model with just an intercept (i.e., a null model). 
+
+The null hypothesis is: $H_0$: null model (model with intercept term only) is a satisfactory fit
+
+$H_a$: null model is not a satisfactory fit
+
+The test statistic is the difference between the residual deviance for the model with predictors and the model only with the intercept term, that is, the null model. To find the value of the test statistic, we use the command:
+
+with(fit,null.deviance-deviance)
+
+The test statistic is distributed as the chi-squared with degrees of freedom equal to the differences in degrees of freedom between the current and the null model (i.e., the number of predictor variables in the model), which can be found using the command:
+
+with(fit,df.null - df.residual)
+
+The p-value of the overall test is obtained by executing the command:
+
+with(fit,pchisq(null.deviance-deviance,df.null-df.residual,lower.tail =F))
+
+```{r comment=""}
+chisq=with(fit,null.deviance-deviance)
+df=with(fit,df.null-df.residual)
+pval=pchisq(chisq,df,lower.tail=F)
+pval
+```
+Report the estimates of the model parameters and write down the estimated logistic regression function. 
+
+```{r comment=""}
+coef(fit)
+```
+The estimated logistic regression function is
+
+$logit\frac{\pi}{1-\pi}$ = $-3.989979073+0.002264426*gre+0.804037549*gpa--0.675442928*rank2-1.340203916*rank3-1.551463677*rank4$
+
+
+Find the odds ratio of admission related to each variable and interpret them. 
+
+```{r comment=""}
+ORs=exp(coef(fit))
+ORs
+```
+## Interpretation
+
+The odds ratio related to gpa variable is 2.23. It means that for every 1 unit increase in the applicant's gpa, the odds of being admitted to a grad school (success) increases by 2.23 times keeping the values of other predictors same in the model. 
+
+The odds ratio related to rank4 variable is 0.21. It means that the odds of being admitted to a grad school is (1-0.21)100=79% less for a student coming from a 
+rank 4 (least prestige) undergraduate institution compared to a student coming from a rank 1 (highest prestige) institution keeping the values of other predictors same.
+
+Find the 95% confidence interval for each odds ratio. 
+
+```{r comment=""}
+CIs=exp(confint(fit, level=0.95))
+CIs
+```
+
+Note that the lowest chance of being admitted to a grad school is associated with the least prestige (rank4) undergraduate institutions. Treating rank4 as the reference or baseline level leads to a slightly simpler interpretation for the odds ratio related to the indicators of rank variable. Therefore, refit the model with rank value 4 as the baseline or reference category and report odds ratio, along with corresponding 95% CIs. Interpret the point estimate and 95% CI estimates of odds ratio related to rank1 variable. 
+
+```{r comment=""}
+Admission$rank=relevel(Admission$rank, ref="4")
+fit2=glm(admit~gre+gpa+rank,family=binomial(link="logit"), data=Admission)
+fit2
+ORs2=exp(coef(fit2))
+ORs2
+
+CI2=exp(confint(fit2))
+CI2
+```
+The odds ratio related to rank1 variable is 4.72. It means that the odds of being admitted to a grad school for a student coming from a rank 1 (highest prestige) undergraduate institution is 4.72 times the odds of being admitted for a student coming from a rank 4 (least prestige) institution keeping the values of other predictors same.
+
+
+Now find the predicted probability of admission to a graduate school for students whose
+
+a. gre=650, gpa=3.5, rank=3.
+
+b. gre=750, gpa=3.9, rank=1.
+
+```{r comment=""}
+newdata=data.frame(gre=c(650, 750), gpa=c(3.5, 3.9), rank=factor(c(3, 1)))
+pred=predict(fit, newdata, type="response")
+pred
+```
+
+

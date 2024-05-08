@@ -1,0 +1,76 @@
+---
+title: "SubmitHW6-LianZuo"
+author: "Lian Zuo"
+date: "2023-03-12"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,comment = "")
+```
+
+# Q1
+```{r}
+#(a) H0:There is no association between cholesterol and heart disease,H1: There is an association between cholesterol and heart diease.
+#(b) Pearson's chi-square test 
+#(c) the value of the test statistic is X-squared=35.028
+#(d) p-value = 1.202e-07
+#(e) At 5% level of significance, we reject the null hypothesis of no association between cholesterol and heart diease.
+# R code:
+x <- matrix(c(12,307,8,246,31,439,41,245),nrow=2,dimnames=list(Disease=c("CHD","no CHD"),Cholesterol_level=c("0-199","200-219","220-259","260+")))
+chis.p <- chisq.test(x,correct=F)
+chis.p
+```
+# Q2
+```{r}
+#(a) It is a Case-control study design.
+#(b) H0:There is no association between infant’s respiratory disease and type of feeding,H1: There is an association between infant's respiratory disease and type of feeding.
+#(c) The value of the test statistic is X-squared=0.72257, p-value = 0.3953, Conclusion:At 5% level of significance, we accept the null hypothesis of no association between infant’s respiratory disease and type of feeding.
+#(d) The value of the test statistic is X-squared=0.738346, p-value = 0.3901912, Conclusion:At 5% level of significance, we accept the null hypothesis of no association between infant’s respiratory disease and type of feeding.
+#(e) The value of the test statistic is X-squared=0.56372, p-value = 0.4528, Conclusion:At 5% level of significance, we accept the null hypothesis of no association between infant’s respiratory disease and type of feeding.
+#(f)  We do reach to the same conclusion for all three tests.
+m <- matrix(c(125,35,717,239),nrow=2,dimnames = list(Type_of_feeding=c("Bottle","Supplement"),Disease=c("Yes","No")))
+chi.p <- chisq.test(m,correct = F)
+chi.p
+#G2 likelihood ratio test
+exp <- chi.p$expected
+obs <- chi.p$observed
+G2 <- 2* sum(obs*log(obs/exp))
+G2
+p.val.G2 <- pchisq(G2,df=1,lower.tail = F)
+p.val.G2
+# Yates Continuity Adjusted Chi-squared test
+chi.p.Yates <- chisq.test(m,correct = T)
+chi.p.Yates
+```
+
+# Q3
+```{r}
+#(a) It is a cross-sectional study design.
+#(b) H0:There is no association between infant’s respiratory disease and gender,H1: There is an association between infant’s respiratory disease and gender.
+#(c) The value of the test statistic is X-squared=5.4324, p-value = 0.01977, Conclusion:At 5% level of significance, we reject the null hypothesis of no association between infant’s respiratory disease and gender.
+#(d) The value of the test statistic is X-squared=5.476143, p-value = 0.01927775, Conclusion:At 5% level of significance, we reject the null hypothesis of no association between infant’s respiratory disease and gender.
+#(e) The value of the test statistic is X-squared=5.1154, p-value = 0.02371, Conclusion:At 5% level of significance, we reject the null hypothesis of no association between infant’s respiratory disease and gender.
+#(f) We do reach to the same conclusion for all three tests.
+# R code:
+m <- matrix(c(143,95,956,880),nrow=2,dimnames=list(Gender=c("Boy","Girl"),Diease=c("Yes","No")))
+chi.p <- chisq.test(m,correct = F)
+chi.p
+#G2 likelihood ratio test
+exp <- chi.p$expected
+obs <- chi.p$observed
+G2 <- 2* sum(obs*log(obs/exp))
+G2
+p.val.G2 <- pchisq(G2,df=1,lower.tail = F)
+p.val.G2
+# Yates Continuity Adjusted Chi-squared test
+chi.p.Yates <- chisq.test(m,correct = T)
+chi.p.Yates
+```
+# Q4
+Solution:
+$V\left [f(\hat p)\right]=(f'(\hat p))^2 * V(p)$
+$=\left ((e^\frac{p}{1-p})'\right)^2*\frac{p(1-p)}{n}$
+$=\left (e^\frac{p}{1-p}*\frac{1}{(1-p)^2}\right)^2*\frac{p(1-p)}{n}$
+$=e^\frac{2p}{1-p}*\frac{1}{(1-p)^4}*\frac{p(1-p)}{n}$
+$=\frac{p}{n(1-p)^3}*e^\frac{2p}{1-p}$

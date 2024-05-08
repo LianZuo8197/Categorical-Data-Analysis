@@ -1,0 +1,134 @@
+---
+title: "Proportional Odds Cumulative Logit Model"
+author: "Tanweer Shapla"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r setup, include=FALSE, comment=""}
+knitr::opts_chunk$set(echo = TRUE)
+```
+In this tutorial, we use "housing" data from MASS package to fit a Proportional Odds Cumulative Logit function to model the response variable on a number of categorical and quantitative predictors. A description of data can be viewed in the R Help window. 
+
+The housing data frame has 72 observations and 5 variables:
+
+Response variable:
+
+Sat: Satisfaction of householders with their present housing circumstances, (High, Medium or Low, ordered factor).
+
+Qualitative Predictors: 
+
+
+Infl: Perceived degree of influence householders have on the management of the property (High, Medium, Low).
+
+Type: Type of rental accommodation (Tower, Atrium, Apartment, Terrace).
+
+Cont: Contact residents are afforded with other residents (Low, High).
+
+Quantitative Predictor:
+
+Freq: the numbers of residents in each class.
+
+
+
+To fit a proportional odds cumulatative logit model, we use polr() function from MASS package. The polr() command stands for “proportional odds logistic regression.” The syntax is the same as the lm(y~x) command. Note that the outcome variable is required to be formatted as a factor in order to run the model.
+
+Note: Please keep in mind that the slope parameter estimates from polr() function are given by $\eta_i$ where $\eta_i=-\beta_i$. This does not apply to the intercept terms though. 
+
+```{r comment=""}
+library(MASS)
+head(housing)
+summary(housing)
+
+#In practice, the highest or the lowest category is chosen as the baseline category
+
+# default baseline in R is determined using alpha-numeric order 
+
+#We can set a specific reference category by explicitly placing one of the levels first when specifying the levels. We order the levels so whatever level is first will be the one we want as a reference.
+
+levels(housing$Sat)
+levels(housing$Infl) 
+levels(housing$Cont)
+levels(housing$Type)
+```
+
+
+Below we fit the proportional odds cumulative logit models:
+
+```{r comment=""}
+olr.housing=polr(Sat ~ Infl+Type+Cont+Freq, data=housing)
+summary(olr.housing)
+```
+
+
+## Does the model fit well?
+
+We perform the deviance test of overall fit to check if the proposed model is a good one. 
+
+```{r comment=""}
+g2 = deviance(olr.housing)
+df = df.residual(olr.housing)
+1 - pchisq(g2, df)
+```
+
+The deviance test for overall fit provides a p-value of 0.0000 indicating the test is significant, and the full model is a good one. 
+
+
+## Interpretation of parameters
+
+Now, let us focus on the estimated model and the interpretation of the parameter estimates. 
+
+Since there are 3 levels of the response variable "Sat", we get $3-1=2$ estimated cumulative logit models given as follows:
+
+$logit$ P(Low satisfaction)=$-0.1485-(-0.05877)*InflMedium-0.26094*InflHigh-(-0.53297)*TypeApartment-(0.21631)*TypeAtrium-(0.18606)*TypeTerrace-(-0.19317)*ContHigh-(0.02810)*Freq$ 
+
+or, 
+
+$log$ {P(low satisfaction)}/{P(medium or high satisfaction}=$-0.1485+0.05877*InflMedium-0.26094*InflHigh+0.53297*TypeApartment-0.21631*TypeAtrium-0.18606*TypeTerrace+0.19317*ContHigh-0.02810*Freq$: Model A
+
+And
+
+$logit$ P (Low or medium satisfaction)=$1.2673+0.05877*InflMedium-0.26094*InflHigh+0.53297*TypeApartment-0.21631*TypeAtrium-0.18606*TypeTerrace+0.19317*ContHigh-0.02810*Freq$ 
+
+or, 
+
+$log$ {P(Low or medium satisfaction)}/{P(High satisfaction}=$1.2673+0.05877*InflMedium-0.26094*InflHigh+0.53297*TypeApartment-0.21631*TypeAtrium-0.18606*TypeTerrace+0.19317*ContHigh-0.02810*Freq$: Model B
+
+ 
+How to interpret the parameter estimates?
+
+Interpretation of $\hat \alpha_1$:
+
+The first intercept value $\hat \alpha_1$ is the estimated log-odds of low satisfaction (versus medium or high) when all predictors are zero (at baseline level). So for people with low perceived degree of influence, housing type tower, low contact with residents, and frequency=0, the odds of low satisfaction is estimated to be $e^{-0.1485}$=0.862. 
+
+
+Interpretation of $\hat \alpha_2$:
+
+The second intercept value $\hat \alpha_2$ is the estimated log-odds of low or medium satisfaction (versus high) when all predictors are zero (at baseline level). So for people with low perceived degree of influence, housing type tower, low contact with residents, and frequency=0, the odds of low or medium satisfaction is estimated to be $e^{1.2673}$=3.55. 
+
+
+Interpretation of $\hat \beta_{InflMedium}$:
+
+For people with medium perceived degree of influence, the odds of low satisfaction (versus medium or high) is $e^{-(-0.05877)}$=1.060531 times the odds for people with low perceived degree of influence while keeping other predictors constant. Moreover, by the proportional odds assumption, this is also the estimated odds ratio for low or medium satisfaction (versus high), when comparing those two influence groups. 
+
+
+Interpretation of $\hat \beta_{TypeAtrium}$:
+
+For people living in Atrium, the odds of low satisfaction (versus medium or high) is $e^{-(0.21631)}$=0.8054856 times the odds for people living in towers while keeping other predictors constant. In other words, for people living in Atrium, the odds of medium or high satisfaction versus low satisfaction is $1/0.8054856=1.24$ times the odds for people living in towers while keeping other predictors constant. Moreover, by the proportional odds assumption, this is also the estimated odds ratio for low or medium satisfaction (versus high), when comparing those two residence type groups.
+
+
+## How to change the reference or baseline level?
+
+If we wish to change the baseline from Tower to Apartment for Type variable, we write
+
+
+
+```{r}
+#housing$Type=relevel(housing$Type, ref="Apartment")
+```
+Apartment comes first in the list of levels of the Type variable indicating it is the baseline level. 
+
+```{r}
+#levels(housing$Type)
+```
+
